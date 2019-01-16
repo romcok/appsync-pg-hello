@@ -1,0 +1,22 @@
+{
+  "name": "appsync-pg-hello",
+  "version": "1.0.0",
+  "description": "Serverless AppSync Lambda resolver for PostgreSQL.",
+  "main": "handler.js",
+  "scripts": {
+    "deploy": "SLS_DEBUG=* serverless deploy -v",
+    "gql": "serverless graphql-playground",
+    "local": "node test.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "romcok",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^7.8.0"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.388.0",
+    "js-yaml": "^3.12.1",
+    "serverless-appsync-plugin": "^1.0.9"
+  }
+}

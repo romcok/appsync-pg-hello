@@ -1,0 +1,12 @@
+        {
+            "version" : "2017-02-28",
+            "operation": "Invoke",
+            #set($id = $util.autoId())
+            "payload": {
+              "sql":"INSERT INTO hello VALUES ('$id', :CONTENT)",
+              "variableMapping": {
+                ":CONTENT" : "$context.arguments.content"
+              },
+              "responseSQL": "SELECT id, content FROM hello WHERE id = '$id'"
+            }
+        }

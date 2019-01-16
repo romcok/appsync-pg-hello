@@ -1,0 +1,84 @@
+service:
+  name: appsync-pg-hello
+  publish: false # disable auto-publishing to the Serverless platform
+
+plugins:
+  - serverless-appsync-plugin
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: ${file(env.yml):region}
+  stage: dev
+
+functions:
+  graphql:
+    handler: handler.graphqlHandler
+    environment:
+      PG: ${file(env.yml):pg} # PostgreSQL Connection String
+    
+custom:
+  accountId: ${file(env.yml):accountId}
+  appSync:
+    serviceRole: AppSyncServiceRole
+    # name:  # defaults to api
+    name: appsync-pg-hello
+    authenticationType: API_KEY
+    #userPoolConfig:
+    #  awsRegion: eu-west-1
+    #  defaultAction: ALLOW
+    #  userPoolId: # required # user pool ID
+    # mappingTemplatesLocation: # defaults to mapping-templates
+    mappingTemplates:
+      - dataSource: Lambda_Pg_Resolver
+        type: Mutation
+        field: createHello
+        request: "createHello-request.vtl"
+        response: "createHello-response.vtl"
+      - dataSource: Lambda_Pg_Resolver
+        type: Query
+        field: getHello
+        request: "getHello-request.vtl"
+        response: "getHello-response.vtl"
+      - dataSource: Lambda_Pg_Resolver
+        type: Query
+        field: listHello
+        request: "listHello-request.vtl"
+        response: "listHello-response.vtl"
+    # schema: # defaults schema.graphql
+    dataSources:
+      - type: AWS_LAMBDA
+        name: Lambda_Pg_Resolver
+        description: 'Lambda PostgreSQL DataSource'
+        config:
+          lambdaFunctionArn: { Fn::GetAtt: [GraphqlLambdaFunction, Arn] }
+          serviceRoleArn: { Fn::GetAtt: [AppSyncLambdaServiceRole, Arn] }
+resources:
+  Resources:
+    AppSyncLambdaServiceRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: "Lambda-${self:custom.appSync.serviceRole}"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                Service:
+                  - "appsync.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          -
+            PolicyName: "Lambda-${self:custom.appSync.serviceRole}-Policy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                -
+                  Effect: "Allow"
+                  Action:
+                    - "lambda:invokeFunction"
+                  Resource:
+                    - "arn:aws:lambda:${self:provider.region}:${self:custom.accountId}:function:appsync-pg-hello-dev-graphql"
+                    - "arn:aws:lambda:${self:provider.region}:${self:custom.accountId}:function:appsync-pg-hello-dev-graphql:*"

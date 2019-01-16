@@ -1,0 +1,23 @@
+type Hello {
+  id: ID!
+  content: String!
+}
+
+type Mutation {
+  createHello(content: String!): Hello
+}
+
+type Query {
+  listHello: [Hello]
+  getHello(id: String!): Hello
+}
+
+type Subscription {
+  addedHello(id: String!): Hello
+    @aws_subscribe(mutations: ["createHello"])
+}
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
